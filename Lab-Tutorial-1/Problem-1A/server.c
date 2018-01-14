@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
     server.sin_family = AF_INET;  // used for TCP
     server.sin_port = htons(PORT);  // host to network byte ordering to maintain consistency
     server.sin_addr.s_addr = INADDR_ANY;  // no specific IP
-    bzero(&server.sin_zero, 8);
+    bzero(&server.sin_zero, 8);  // Fill empty fields with 0
 
     printf("Server information: IP Address: %s, Port Number: %d\n", inet_ntoa(server.sin_addr), PORT);
 
@@ -56,18 +56,18 @@ int main(int argc, char* argv[])
         printf("Client Connected. IP Address: %s\n", inet_ntoa(client.sin_addr));
 
         int received, sent;
-        while(1)
+        while(1)  // Receive endlessly
         {
             received = recv(client_socket, message, MAX_LEN, 0);
-            if (received <= 0)
+            if (received <= 0)  // This will break the loop, mostly on disconnection of the client
             {
                 break;
             }
             sent = send(client_socket, message, received, 0);
 
             message[received] = '\0';
-            printf("Received %s from client\n", message);
-            printf("Sent %s to client\n", message);
+            printf("Received \"%s\"", message);
+            printf("Sent \"%s\"", message);
         }
         printf("Client at IP Address: %s has disconnected\n", inet_ntoa(client.sin_addr));
         close(client_socket);
