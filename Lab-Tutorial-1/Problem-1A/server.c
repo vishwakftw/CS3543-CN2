@@ -1,0 +1,77 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netinet/in.h>
+#include<arpa/inet.h>
+
+#define MAX_QUEUE 10
+#define MAX_LEN 1000
+
+int main(int argc, char* argv[])
+{
+    int server_socket, client_socket;
+    struct sockaddr_in server, client;
+    char message[MAX_LEN];
+    int PORT = atoi(argv[1]);
+
+    // Create socket
+    if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+    {
+        printf("Socket Creation Error\n");
+        exit(1);
+    }
+    server.sin_family = AF_INET;  // used for TCP
+    server.sin_port = htons(PORT);  // host to network byte ordering to maintain consistency
+    server.sin_addr.s_addr = INADDR_ANY;  // no specific IP
+    bzero(&server.sin_zero, 8);
+
+    printf("Server information: IP Address: %s, Port Number: %d\n", inet_ntoa(server.sin_addr), PORT);
+
+    // Bind socket to PORT
+    socklen_t len = sizeof(struct sockaddr_in);
+    if (bind(server_socket, (struct sockaddr *)&server, len) == -1)
+    {
+        printf("Socket Binding Error\n");
+        exit(1);
+    }
+
+    // Now socket will listen
+    if (listen(server_socket, MAX_QUEUE) == -1)
+    {
+        printf("Socket Listen Error\n");
+        exit(1);
+    }
+
+    // Listen endlessly and wait for connection
+    while(1)
+    {
+        if((client_socket = accept(server_socket, (struct sockaddr *)&client, &len)) == -1)
+        {
+            printf("Socket Accept Error\n");
+            exit(1);
+        }
+
+        printf("Client Connected. IP Address: %s\n", inet_ntoa(client.sin_addr));
+
+        int received, sent;
+        while(1)
+        {
+            received = recv(client_socket, message, MAX_LEN, 0);
+            if (received <= 0)
+            {
+                break;
+            }
+            sent = send(client_socket, message, received, 0);
+
+            message[received] = '\0';
+            printf("Received %s from client\n", message);
+            printf("Sent %s to client\n", message);
+        }
+        printf("Client at IP Address: %s has disconnected\n", inet_ntoa(client.sin_addr));
+        close(client_socket);
+    }
+    close(server_socket);
+return 0;
+}
