@@ -1,4 +1,4 @@
-// Client for Echo system
+// Client for simple chat application
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -11,7 +11,6 @@
 
 int main(int argc, char* argv[])
 {
-    const char *exit_str = "Exit";
     int client_socket;
     struct sockaddr_in server;
     char message[MAX_LEN];
@@ -37,16 +36,15 @@ int main(int argc, char* argv[])
     while(1)  // Keep connection open endlessly
     {
         fgets(message, MAX_LEN, stdin);  // Standard input (this allows strings with spaces also)
-        message[strlen(message) - 1] = '\0';
-        if (strcmp(message, exit_str) == 0)  // This is the breaking condition
+        if (strcmp(message, "Bye\n") == 0)  // This is the breaking condition
         {
             break;
         }
         int sent = send(client_socket, message, strlen(message), 0);
-        printf("Sent \"%s\"", message);
+        printf("Sent: %s\n", message);
         int received = recv(client_socket, message, MAX_LEN, 0);
-        message[received] = '\0';
-        printf("Received \"%s\"", message);
+        message[strlen(message)] = '\0';
+        printf("Received: %s\n", message);
     }
     close(client_socket);
 return 0;

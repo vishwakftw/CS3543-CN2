@@ -1,4 +1,4 @@
-// Server for Echo System
+// Server for simple Chat Application
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -45,34 +45,32 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    // Listen endlessly and wait for connection
-    while(1)
+    // Listen endlessly until one client connects and wait for connection
+    if((client_socket = accept(server_socket, (struct sockaddr *)&client, &len)) == -1)
     {
-        if((client_socket = accept(server_socket, (struct sockaddr *)&client, &len)) == -1)
-        {
-            printf("Socket Accept Error\n");
-            exit(1);
-        }
-
-        printf("Client Connected. IP Address: %s\n", inet_ntoa(client.sin_addr));
-
-        int received, sent;
-        while(1)  // Receive endlessly
-        {
-            received = recv(client_socket, message, MAX_LEN, 0);
-            if (received <= 0)  // This will break the loop, mostly on disconnection of the client
-            {
-                break;
-            }
-            sent = send(client_socket, message, received, 0);
-
-            message[received] = '\0';
-            printf("Received \"%s\"", message);
-            printf("Sent \"%s\"", message);
-        }
-        printf("Client at IP Address: %s has disconnected\n", inet_ntoa(client.sin_addr));
-        close(client_socket);
+        printf("Socket Accept Error\n");
+        exit(1);
     }
+
+    printf("Client Connected. IP Address: %s\n", inet_ntoa(client.sin_addr));
+
+    int received, sent;
+    while(1)  // Receive endlessly
+    {
+        received = recv(client_socket, message, MAX_LEN, 0);
+        message[received] = '\0';
+        printf("Received: %s\n", message);
+        // If the server receives Bye, then break. If the client receives Bye, then client disconnects. This will cause received <= 0
+        if (strcmp(message, "Bye\n") == 0 | received <= 0)
+        {
+            break;
+        }
+        fgets(message, MAX_LEN, stdin);
+        sent = send(client_socket, message, strlen(message), 0);
+        printf("Sent: %s\n", message);
+    }
+    printf("Client at IP Address: %s has disconnected\n", inet_ntoa(client.sin_addr));
+    close(client_socket);
     close(server_socket);
 return 0;
 }
