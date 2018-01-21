@@ -1,4 +1,4 @@
-// Client for simple chat application
+// Client for simple chat application with non-blocking capabilities 
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -11,6 +11,8 @@
 
 #define MAX_LEN 1000
 
+// This is the threading function for the thread spawned by the client process
+// Only for receiving
 void *receiver(void *rec_client)
 {
     char message_recv[MAX_LEN];
@@ -53,7 +55,7 @@ int main(int argc, char* argv[])
     }
 
     int sent;
-    pthread_t receiver_thread;
+    pthread_t receiver_thread; // Create the thread
     pthread_create(&receiver_thread, NULL, receiver, &client_socket);
     while(1)  // Keep connection open endlessly
     {
@@ -65,7 +67,7 @@ int main(int argc, char* argv[])
             break;
         }
     }
-    pthread_join(receiver_thread, NULL);
+    pthread_join(receiver_thread, NULL);  // Wait for completion of the parent process
     close(client_socket);
 return 0;
 }

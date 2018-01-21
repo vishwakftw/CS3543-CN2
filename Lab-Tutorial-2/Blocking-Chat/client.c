@@ -1,4 +1,4 @@
-// Client for simple chat application
+// Client for simple chat application with blocking capability
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -33,10 +33,12 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
+    // After connecting, the clients will receive a handshake message specifying the privileges
+    // Sending first and Receiving first are the two privileges
     int received = recv(client_socket, message, MAX_LEN, 0);
     message[received] = '\0';
     int sent;
-    if (strcmp(message, "send_first") == 0)
+    if (strcmp(message, "send_first") == 0)  // Send first
     {
         while(1)  // Keep connection open endlessly
         {
@@ -57,7 +59,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    else if (strcmp(message, "recv_first") == 0)
+    else if (strcmp(message, "recv_first") == 0)  // Receive first
     {
         while(1) // Keep connection open endlessly
         {

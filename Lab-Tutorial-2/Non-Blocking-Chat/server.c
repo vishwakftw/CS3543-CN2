@@ -1,4 +1,4 @@
-// Server for Echo System
+// Server for Simple Chat Application with two clients and non blocking capabilities
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -14,6 +14,7 @@
 
 int client_sockets[2];
 
+// Thread function to take care of one way application (Client 2 to Client 1)
 void *c2_to_c1()
 {
     char message[MAX_LEN];
@@ -64,13 +65,14 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
+    // Wait for clients to connect
     while((client_sockets[0] = accept(server_socket, (struct sockaddr *)&client[0], &len)) == -1);
     printf("Client 0 Connected. IP Address: %s\n", inet_ntoa(client[0].sin_addr));
     while((client_sockets[1] = accept(server_socket, (struct sockaddr *)&client[1], &len)) == -1);
     printf("Client 1 Connected. IP Address: %s\n", inet_ntoa(client[1].sin_addr));
 
     int received, sent;
-    pthread_t c2_to_c1_thread;
+    pthread_t c2_to_c1_thread;  // Create the thread
     pthread_create(&c2_to_c1_thread, NULL, c2_to_c1, NULL);
     while(1)  // Receive endlessly
     {
@@ -81,7 +83,7 @@ int main(int argc, char* argv[])
         }
         sent = send(client_sockets[1], message, received, 0);
     }
-    pthread_join(c2_to_c1_thread, NULL);
+    pthread_join(c2_to_c1_thread, NULL);  // Wait for the other-way communication to end (which is the parent process)
     close(client_sockets[0]);
     close(client_sockets[1]);
     close(server_socket);

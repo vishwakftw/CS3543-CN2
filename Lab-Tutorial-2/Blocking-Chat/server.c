@@ -1,4 +1,4 @@
-// Server for Echo System
+// Server for Simple Chat Application with two clients and Blocking capability
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -45,6 +45,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
+    // Server will send the clients the send-first and receive-first privileges
     while((client_sockets[0] = accept(server_socket, (struct sockaddr *)&client[0], &len)) == -1);
     printf("Client 0 Connected. IP Address: %s\n", inet_ntoa(client[0].sin_addr));
     strcpy(message, "send_first");
@@ -58,13 +59,13 @@ int main(int argc, char* argv[])
     while(1)  // Receive endlessly
     {
         received = recv(client_sockets[0], message, MAX_LEN, 0);
-        if (received <= 0)  // Loop breaker
+        if (received <= 0)  // Loop breaker, error checking
         {
             break;
         }
         sent = send(client_sockets[1], message, received, 0);
         received = recv(client_sockets[1], message, MAX_LEN, 0);
-        if (received <= 0)  // Loop breaker
+        if (received <= 0)  // Loop breaker, error checking
         {
             break;
         }
