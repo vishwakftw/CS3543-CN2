@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
         // receive now
         received = recvfrom(client_socket, &cur_packet_recv, sizeof(cur_packet_recv), 0, (struct sockaddr *)&server, sizeof(server));
         cur_packet_send.ack = true;  // Sending an ack
-        if (cur_packet_recv.checksum != compute_checksum(cur_packet_recv.data))
+        if ((cur_packet_recv.checksum != compute_checksum(cur_packet_recv.data)) || (cur_packet_recv.seq_no != counter))
         {
             cur_packet_send.seq_no = cur_packet_recv.seq_no;    // if no correct checksum, then expected sequence number is the same
             flag = false;
