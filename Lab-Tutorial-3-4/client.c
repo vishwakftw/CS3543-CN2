@@ -12,6 +12,20 @@
 
 #define MAX_LEN 1000
 
+char compute_checksum(char cur_string[])
+{
+    int i;
+    char checker = 'a';
+    for (i = 1; i < strlen(cur_string); i++)
+    {
+        if (i == 0)
+        {
+            checker = checker ^ cur_string[i];
+        }
+    }
+return checker;
+}
+
 typedef struct
 {
     char data[MAX_LEN];
@@ -54,22 +68,38 @@ int main(int argc, char *argv[])
     server.sin_port = htons(server_PORT);
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    // Now we need to send messages to server
+    // Now we need to receive the packets from the server
     int received, sent;
-    packet cur_packet_send, cur_packet_recv;
+    bool flag;
+    int counter = 0;
+    FILE *file_ptr = fopen(argv[3], "wb");
     while(1)
     {
+        packet cur_packet_send, cur_packet_recv;
+        // receive now
         received = recvfrom(client_socket, &cur_packet_recv, sizeof(cur_packet_recv), 0, (struct sockaddr *)&server, sizeof(server));
-        if (strlen(cur_packet_recv.data) != cur_packet_recv.checksum)
+        cur_packet_send.ack = true;  // Sending an ack
+        if (cur_packet_recv.checksum != compute_checksum(cur_packet_recv.data))
         {
-            break;
+            cur_packet_send.seq_no = cur_packet_recv.seq_no;    // if no correct checksum, then expected sequence number is the same
+            flag = false;
         }
-        printf("%s", cur_packet_recv.data);
-        if (cur_packet_recv.last_packet == true)
+        else
+        {
+            cur_packet_send.seq_no = cur_packet_recv.seq_no + 1;    // else, increment expected sequence number
+            printf("Received packet with sequence number %d\n", cur_packet_recv.seq_no);  // print message
+            fwrite(cur_packet_recv.data, sizeof(char), sizeof(cur_packet_recv.data), file_ptr);
+            flag = cur_packet_recv.last_packet;
+            counter += 1;
+        }
+        sent = sendto(client_socket, &cur_packet_send, sizeof(cur_packet_send), 0, (struct sockaddr *)&server, sizeof(server));  // send
+        printf("Sent acknowledgement for received packet sequence number = %d\n", cur_packet_recv.seq_no);
+        if (flag == true)
         {
             break;
         }
     }
     close(client_socket);
+    fclose(file_ptr);
 return 0;
 }

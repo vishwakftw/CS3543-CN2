@@ -3,6 +3,7 @@
 #include<string.h>
 #include<sys/types.h>
 #include<sys/socket.h>
+#include<sys/time.h>
 #include<netinet/in.h>
 #include<arpa/inet.h>
 #include<unistd.h>
@@ -11,6 +12,20 @@
 #include<stdbool.h>
 
 #define MAX_LEN 1000
+
+char compute_checksum(char cur_string[])
+{
+    int i;
+    char checker = 'a';
+    for (i = 1; i < strlen(cur_string); i++)
+    {
+        if (i == 0)
+        {
+            checker = checker ^ cur_string[i];
+        }
+    }
+return checker;
+}
 
 typedef struct
 {
@@ -28,14 +43,22 @@ int main(int argc, char *argv[])
     int server_PORT = atoi(argv[1]);
     int client_PORT = atoi(argv[2]);
 
-    char message_send[MAX_LEN];
-
     // Create socket
     if ((server_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
     {
         printf("Socket Creation Error\n");
         exit(1);
     }
+
+    struct timeval tv;
+    tv.tv_sec = 0;
+    tv.tv_usec = 100000;
+    if (setsockopt(server_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
+    {
+        printf("Socket timeout setting error\n");
+        exit(1);
+    }
+
     server.sin_family = AF_INET;  // used for UDP
     server.sin_port = htons(server_PORT);  // host to network byte ordering to maintain consistency
     server.sin_addr.s_addr = inet_addr("127.0.0.1");  // no specific IP
@@ -56,31 +79,46 @@ int main(int argc, char *argv[])
     client.sin_port = htons(client_PORT);
     client.sin_addr.s_addr = inet_addr("127.0.0.1");  // testing from local, hence this will be the same
 
-    // Now we need to send messages to client
+
+    // Sending details
+    FILE *file_ptr = fopen(argv[3], "rb");
+    fseek(file_ptr, 0, SEEK_END);
+    int total_size = ftell(file_ptr);
+    rewind(file_ptr);
+
+    // Create placeholders
     int received, sent;
-    packet cur_packet_send, cur_packet_recv;
     int counter = 0;
+    int read_bytes = 0, total_sent = 0;
+
+    // Sending loop
     while(1)
     {
-        fgets(message_send, MAX_LEN, stdin);
+        // Make packet
+        char message_send[MAX_LEN];
+        packet cur_packet_send, cur_packet_recv;
+        read_bytes = fread(message_send, sizeof(char), MAX_LEN, file_ptr);
         strcpy(cur_packet_send.data, message_send);
         cur_packet_send.seq_no = counter;
         cur_packet_send.ack = false;
-        cur_packet_send.last_packet = false;
-        cur_packet_send.checksum = strlen(message_send);
-        if (fgets(message_send, MAX_LEN, stdin) == 0)
+        cur_packet_send.last_packet = ((total_size - total_sent) <= MAX_LEN);
+        cur_packet_send.checksum = compute_checksum(cur_packet_send.data);
+    
+        // Keep sending until you get the correct ack with the correct expected sequence number
+        do
         {
-            cur_packet_send.last_packet = true;
-        }
+            sent = sendto(server_socket, &cur_packet_send, sizeof(cur_packet_send), 0, (struct sockaddr *)&client, sizeof(client));    
+            printf("Sending message of length: %d\n", read_bytes);
+            received = recvfrom(server_socket, &cur_packet_recv, sizeof(cur_packet_recv), 0, (struct sockaddr *)&client, sizeof(client));
+        } while (cur_packet_recv.seq_no != cur_packet_send.seq_no + 1);
 
-        sent = sendto(server_socket, &cur_packet_send, sizeof(cur_packet_send), 0, (struct sockaddr *)&client, sizeof(client));
-        printf("Sent packet with seq.number = %d\n", cur_packet_send.seq_no);
-        counter += 1;
-
+        printf("Sent packet with sequence number = %d\n", cur_packet_send.seq_no);
         if (cur_packet_send.last_packet == true)
         {
             break;
         }
+        counter += 1;
+        total_sent += read_bytes;
     }
     close(server_socket);
 return 0;
