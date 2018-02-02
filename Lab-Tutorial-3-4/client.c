@@ -12,16 +12,16 @@
 
 #define MAX_LEN 200
 
-char compute_checksum(char cur_string[])
+char compute_checksum(char cur_string[], int size)
 {
     int i;
-    char checker = 'a';
-    for (i = 1; i < strlen(cur_string); i++)
+    char checker = cur_string[0];
+    for (i = 1; i < size; i++)
     {
-        if (i == 0)
-        {
+//        if (i == 0)
+//        {
             checker = checker ^ cur_string[i];
-        }
+//        }
     }
 return checker;
 }
@@ -80,7 +80,8 @@ int main(int argc, char *argv[])
         // receive now
         received = recvfrom(client_socket, &cur_packet_recv, sizeof(cur_packet_recv), 0, (struct sockaddr *)&server, sizeof(server));
         cur_packet_send.ack = true;  // Sending an ack
-        if ((cur_packet_recv.checksum != compute_checksum(cur_packet_recv.data)) || (cur_packet_recv.seq_no != counter))
+        if ((cur_packet_recv.checksum != compute_checksum(cur_packet_recv.data, cur_packet_recv.data_size)) 
+                || (cur_packet_recv.seq_no != counter))
         {
             cur_packet_send.seq_no = cur_packet_recv.seq_no;    // if no correct checksum, then expected sequence number is the same
             flag = false;

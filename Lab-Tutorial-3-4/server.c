@@ -13,16 +13,13 @@
 
 #define MAX_LEN 200
 
-char compute_checksum(char cur_string[])
+char compute_checksum(char cur_string[], int size)
 {
     int i;
-    char checker = 'a';
-    for (i = 1; i < strlen(cur_string); i++)
+    char checker = cur_string[0];
+    for (i = 1; i < size; i++)
     {
-        if (i == 0)
-        {
-            checker = checker ^ cur_string[i];
-        }
+        checker = checker ^ cur_string[i];
     }
 return checker;
 }
@@ -103,7 +100,7 @@ int main(int argc, char *argv[])
         cur_packet_send.seq_no = counter;
         cur_packet_send.ack = false;
         cur_packet_send.last_packet = ((total_size - total_sent) <= MAX_LEN);
-        cur_packet_send.checksum = compute_checksum(cur_packet_send.data);
+        cur_packet_send.checksum = compute_checksum(cur_packet_send.data, read_bytes);
         cur_packet_send.data_size = read_bytes;
     
         // Keep sending until you get the correct ack with the correct expected sequence number
