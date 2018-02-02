@@ -10,7 +10,7 @@
 #include<time.h>
 #include<stdbool.h>
 
-#define MAX_LEN 1000
+#define MAX_LEN 200
 
 char compute_checksum(char cur_string[])
 {
@@ -33,6 +33,7 @@ typedef struct
     int seq_no;
     bool ack;
     bool last_packet;
+    int data_size;
 }packet;
 
 int main(int argc, char *argv[])
@@ -88,7 +89,7 @@ int main(int argc, char *argv[])
         {
             cur_packet_send.seq_no = cur_packet_recv.seq_no + 1;    // else, increment expected sequence number
             printf("Received packet with sequence number %d\n", cur_packet_recv.seq_no);  // print message
-            fwrite(cur_packet_recv.data, sizeof(char), sizeof(cur_packet_recv.data), file_ptr);
+            fwrite(cur_packet_recv.data, sizeof(char), cur_packet_recv.data_size, file_ptr);
             flag = cur_packet_recv.last_packet;
             counter += 1;
         }

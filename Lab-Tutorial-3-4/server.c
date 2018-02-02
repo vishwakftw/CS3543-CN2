@@ -11,7 +11,7 @@
 #include<time.h>
 #include<stdbool.h>
 
-#define MAX_LEN 1000
+#define MAX_LEN 200
 
 char compute_checksum(char cur_string[])
 {
@@ -34,6 +34,7 @@ typedef struct
     int seq_no;
     bool ack;
     bool last_packet;
+    int data_size;
 }packet;
 
 int main(int argc, char *argv[])
@@ -103,6 +104,7 @@ int main(int argc, char *argv[])
         cur_packet_send.ack = false;
         cur_packet_send.last_packet = ((total_size - total_sent) <= MAX_LEN);
         cur_packet_send.checksum = compute_checksum(cur_packet_send.data);
+        cur_packet_send.data_size = read_bytes;
     
         // Keep sending until you get the correct ack with the correct expected sequence number
         do
