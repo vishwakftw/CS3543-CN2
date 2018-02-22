@@ -102,7 +102,12 @@ int main(int argc, char *argv[])
             cout<<"Received correct packet for sequence number = "<<to_recv->seq_no<<endl;
             to_send->ack_no = expectedseqnum++;
             sendto(client_socket, to_send, sizeof(*to_send), 0, &recvfrom_addr, sizeof(recvfrom_addr));
-            output_file<<to_recv->data;
+
+            // write character by character to avoid junk writing
+            for (int i = 0; i < to_recv->data_size; i++)
+            {
+                output_file<<to_recv->data[i];
+            }
             if (to_recv->last_packet)
             {
                 break;

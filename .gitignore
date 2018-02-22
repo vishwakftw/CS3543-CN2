@@ -1,1 +1,2 @@
-.fuse*
+*.fuse*
+*.txt
