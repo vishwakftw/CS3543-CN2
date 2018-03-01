@@ -14,3 +14,6 @@ Coursework pertaining to CS3543 : Computer Networks 2 offered in Spring 2018
 
 ### Lab Tutorial 5
 + Implement Go-Back-N ARQ in C++ using threads (C++ chosen for easier file management)
+
+### Lab Tutorial 6
++ Wireshark assignment on Transport Layer and Link Layer analysis

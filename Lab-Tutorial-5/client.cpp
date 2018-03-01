@@ -96,6 +96,7 @@ int main(int argc, char *argv[])
             cout<<"Incorrect packet sent: expectedseqnum = "<<expectedseqnum<<" versus actual = "<<to_recv->seq_no<<endl;
             to_send->ack_no = expectedseqnum;
             sendto(client_socket, to_send, sizeof(*to_send), 0, &recvfrom_addr, sizeof(recvfrom_addr));
+            recvfrom(client_socket, to_recv, sizeof(*to_recv), 0, &recvfrom_addr, &recvfrom_addr_len);
         }
         else
         {

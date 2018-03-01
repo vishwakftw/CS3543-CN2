@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
     // Timeout setting
     struct timeval tv;
     tv.tv_sec = 0;
-    tv.tv_usec = 10000;
+    tv.tv_usec = 1000;
     if (setsockopt(server_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
     {
         printf("Socket timeout setting error\n");
