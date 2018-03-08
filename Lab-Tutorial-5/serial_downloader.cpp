@@ -99,14 +99,18 @@ int main(int argc, char *argv[])
             cout<<"GET Received failed"<<endl;
             exit(1);
         }
-        total_received += received;
 
+        int start = string(reply).find("%PDF");
+        if (total_received != 0)
+        {
+            start = 0;
+        }
         // To avoid misplacement of characters
-        for (int i = 0; i < received; i++)
+        for (int i = start; i < received; i++)
         {
             output_file<<reply[i];
         }
-        cout<<"Received "<<received<<" bytes"<<endl;
+        total_received += received;
     }
     close(client_fd);
 return 0;
