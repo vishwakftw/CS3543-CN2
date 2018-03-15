@@ -1,4 +1,4 @@
-// HTTP serial download application using TCP Sockets in C++
+// HTTP parallel download application using TCP Sockets in C++
 #include<iostream>
 #include<fstream>
 #include<cstdlib>
@@ -11,14 +11,32 @@
 #include<unistd.h>
 #include<sys/time.h>
 #include<netdb.h>
-#include<vector>
+#include<thread>
 
 #define MAX_LEN 8192
 
 using namespace std;
 
-void get_ranges(int client_fd, string file_name, string host_name, int start, int end)
+struct addrinfo hints, *res;  // HINTS and res addrinfo structs for resolving
+
+void get_ranges(string file_name, string host_name, int start, int end)
 {
+    int client_fd;
+
+    // Create socket for each thread
+    if ((client_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
+    {
+        cout<<"Socket Creation Error"<<endl;
+        exit(1);
+    }
+
+    // Connect to URL
+    if (connect(client_fd, res->ai_addr, res->ai_addrlen) == -1)
+    {
+        cout<<"Connection Error"<<endl;
+        exit(1);   
+    }
+
     // Now send a GET Request to get data
     string range = "Range: bytes=";
     range.append(to_string(start));
@@ -57,21 +75,28 @@ void get_ranges(int client_fd, string file_name, string host_name, int start, in
             cout<<"GET Received failed"<<endl;
             exit(1);
         }
-        total_received += received;
+
+        int start = 0;
+        if (total_received == 0)
+        {
+            start = string(reply).find("\r\n\r\n") + 4;
+        }
 
         // To avoid misplacement of characters
-        for (int i = 0; i < received; i++)
+        for (int i = start; i < received; i++)
         {
             temp_file<<reply[i];
         }
+        total_received += received;
     }
     temp_file.close();
+    close(client_fd);
+    cout<<"Thread for start="<<start<<" and end="<<end<<" has completed"<<endl;
 }
 
 int main(int argc, char *argv[])
 {
     int client_fd;  // Client side socket descriptor
-    struct addrinfo hints, *res;  // HINTS and res addrinfo structs for resolving
 
     // Set fields to 0
     memset(&hints, 0, sizeof(hints));
@@ -118,6 +143,7 @@ int main(int argc, char *argv[])
     }
     reply[received] = '\0';
     cout<<reply<<endl;
+    close(client_fd);
 
     // Substitute for REGEX
     string reply_string(reply);
@@ -127,6 +153,8 @@ int main(int argc, char *argv[])
 
     int n_threads = atoi(argv[4]);
     int max_chunk = content_size / n_threads + 1;
+
+    thread get_threads[n_threads];
     for (int i = 0; i < n_threads; i++)
     {
         int beginning = i * max_chunk;
@@ -135,12 +163,18 @@ int main(int argc, char *argv[])
         {
             ending = content_size - 1;
         }
-        get_ranges(client_fd, string(argv[2]), string(argv[1]), beginning, ending);
+        cout<<"Launching thread for start="<<beginning<<" and end="<<ending<<endl;
+        get_threads[i] = thread(get_ranges, string(argv[2]), string(argv[1]), beginning, ending);
+    }
+    for (int i = 0; i < n_threads; i++)
+    {
+        get_threads[i].join();
     }
 
     // Receive the data from the reply
     ofstream output_file("downloaded.pdf", ios_base::binary);
 
+    // Accumulate all the temp_files
     for (int i = 0; i < n_threads; i++)
     {
         int beginning = i * max_chunk;
@@ -158,8 +192,8 @@ int main(int argc, char *argv[])
 
         ifstream input_file(temp_file_name.c_str(), ios_base::binary);
         output_file << input_file.rdbuf();
+        remove(temp_file_name.c_str());
     }
     output_file.close();
-    close(client_fd);
 return 0;
 }
