@@ -19,4 +19,4 @@ Coursework pertaining to CS3543 : Computer Networks 2 offered in Spring 2018
 + Wireshark assignment on Transport Layer and Link Layer analysis
 
 ### Lab Tutorial 5
-+ Implement HTTP based file downloader using Socket Programming
++ Implement HTTP based file downloader using Socket Programming - Serial and Parallel

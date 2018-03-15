@@ -1,0 +1,57 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=0.675in]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+
+\title{Report for Lab Tutorial 5\\
+CS3543 - Computer Networks - 2}
+\author{Vishwak Srinivasan\\
+\texttt{CS15BTECH11043}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{File statistics}
+\begin{flushleft}
+We tests the capabilities of the downloaders using 3 files taken from the intranet at \texttt{\url{http://intranet.iith.ac.in}}. Location and size details are specified below:
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+File Name & Location & Size (in Bytes)\\
+\hline
+\hline
+\texttt{IFS.pdf} & \texttt{/files/home/IFS.pdf} & 223,621 \\
+\hline
+\texttt{MCM.pdf} & \texttt{/files/home/MCM.pdf} & 225,770 \\
+\hline
+\texttt{List\_of\_Holidays\_2017.pdf} & \texttt{/files/home/List\_of\_Holidays\_2017.pdf} & 1,581,545 \\
+\hline
+\end{tabular}
+\end{center}
+\end{flushleft}
+
+\section*{Download times comparison}
+\begin{flushleft}
+The number of threads was taken from the set \(\{2, 4, 5, 10, 12, 15, 20\}\). The download times are averaged from 4 trials, and the code calculates the total time for download. The units in the table are milliseconds.
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\hline
+\(\downarrow\) File \(\vert\) Threads \(\rightarrow\) & 2 & 4 & 5 & 10 & 12 & 15 & 20 \\
+\hline
+\hline
+\texttt{IFS.pdf} & 20.75 & \textbf{20.5} & 25.25 & 221.5 & 707.0 & 875.0 & 673.0 \\
+\hline
+\texttt{MCM.pdf} & 24.75 & 28.0 & \textbf{21.75} & 219.0 & 138.5 & 614.25 & 870.25 \\
+\hline
+\texttt{List\_of\_Holidays\_2017.pdf} & \textbf{136.0} & \textbf{136.0} & 136.75 & 644.25 & 670.25 & 1034.75 & 918.25 \\
+\hline 
+\end{tabular}
+\end{center}
+
+The reason for the ineffectiveness could be that even though Linux supports a many-to-many threading model, there will be an overhead incurred if the number of threads are actually too high. And note that each thread will create a separate TCP connection, and that overhead is also present. Again, there might be more minor factors such as bandwidth issues. The best value I feel would be in somewhere between 2 and 4.
+\end{flushleft}
+\end{document}

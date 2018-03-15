@@ -12,10 +12,12 @@
 #include<sys/time.h>
 #include<netdb.h>
 #include<thread>
+#include<ctime>
 
-#define MAX_LEN 8192
+#define MAX_LEN 1500
 
 using namespace std;
+using namespace chrono;
 
 struct addrinfo hints, *res;  // HINTS and res addrinfo structs for resolving
 
@@ -50,7 +52,6 @@ void get_ranges(string file_name, string host_name, int start, int end)
     header.append("\r\n");
     header.append(range);
     header.append("\r\n\r\n");
-    cout<<header<<endl;
     if (send(client_fd, header.c_str(), header.length(), 0) == -1)
     {
         cout<<"GET Request failed"<<endl;
@@ -126,8 +127,6 @@ int main(int argc, char *argv[])
     header.append(string(argv[1]));
     header.append("\r\n\r\n");
 
-    cout<<"HEAD Request made: "<<header<<endl;
-
     if (send(client_fd, header.c_str(), header.length(), 0) == -1)
     {
         cout<<"HEAD Request failed"<<endl;
@@ -142,7 +141,6 @@ int main(int argc, char *argv[])
         exit(1);
     }
     reply[received] = '\0';
-    cout<<reply<<endl;
     close(client_fd);
 
     // Substitute for REGEX
@@ -150,6 +148,9 @@ int main(int argc, char *argv[])
     int index = reply_string.find(" ", reply_string.find("Content-Length"));
     int content_size = atoi(reply_string.substr(index, reply_string.find("\n", index) - index).c_str());
     cout<<"Content size parsed: "<<content_size<<endl;
+
+    // Time calculation begin
+    auto start = high_resolution_clock::now();
 
     int n_threads = atoi(argv[4]);
     int max_chunk = content_size / n_threads + 1;
@@ -171,6 +172,12 @@ int main(int argc, char *argv[])
         get_threads[i].join();
     }
 
+    // Time calculation end
+    auto end = high_resolution_clock::now();
+    auto dur = duration_cast<milliseconds>(end - start);
+
+    cout<<"Time taken for download: "<<dur.count()<<" milliseconds"<<endl;
+
     // Receive the data from the reply
     ofstream output_file("downloaded.pdf", ios_base::binary);
 
@@ -188,7 +195,6 @@ int main(int argc, char *argv[])
         temp_file_name.append("-");
         temp_file_name.append(to_string(ending));
         temp_file_name.append(".pdf");
-        cout<<"Temporary File Name: "<<temp_file_name<<endl;
 
         ifstream input_file(temp_file_name.c_str(), ios_base::binary);
         output_file << input_file.rdbuf();
