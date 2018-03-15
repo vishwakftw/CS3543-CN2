@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
     cout<<"Time taken for download: "<<dur.count()<<" milliseconds"<<endl;
 
     // Receive the data from the reply
-    ofstream output_file("downloaded.pdf", ios_base::binary);
+    ofstream output_file(argv[3], ios_base::binary);
 
     // Accumulate all the temp_files
     for (int i = 0; i < n_threads; i++)
